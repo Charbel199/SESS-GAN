@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    def __init__(self, noise_dimension, image_channels, features_g):
+    def __init__(self, noise_dimension, number_of_classes, features_g):
         super(Generator, self).__init__()
         # Based on  DCGAN paper
         self.network = nn.Sequential(
@@ -10,8 +10,8 @@ class Generator(nn.Module):
             self._block(features_g * 16, features_g * 8, 4, 2, 1),
             self._block(features_g * 8, features_g * 4, 4, 2, 1),
             self._block(features_g * 4, features_g * 2, 4, 2, 1),
-            nn.ConvTranspose2d(features_g * 2, image_channels, kernel_size=4, stride=2, padding=1),
-            nn.Tanh()  # Image pixels between -1 and 1
+            nn.ConvTranspose2d(features_g * 2, number_of_classes, kernel_size=4, stride=2, padding=1),
+            nn.Softmax()  # Set probability for each class
         )
 
     @staticmethod
