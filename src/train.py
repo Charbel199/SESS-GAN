@@ -1,5 +1,14 @@
-import torch
 import torchvision
+import torch
+from torch.utils.tensorboard import SummaryWriter
+from model.discriminator import Discriminator
+from model.generator import Generator
+from model.weights import initialize_model_weights
+import torch.optim as optim
+import torch.nn as nn
+from dataset import get_loaders
+from model.preprocessing import get_transforms
+from conf import Config
 
 
 def train_fn(generator,
@@ -14,7 +23,6 @@ def train_fn(generator,
              writer_real,
              fixed_noise,
              device='cpu'):
-
     step = 0
     generator.train()
     discriminator.train()
@@ -26,7 +34,7 @@ def train_fn(generator,
             ## Fetching real image and generating FAKE image
             # Real image represents the actual MNIST image
             real_image = real_image.to(device)
-            real_image =  torch.argmax(real_image, dim=1) # TODO: Check if correct
+            real_image = torch.argmax(real_image, dim=1)  # TODO: Check if correct
             # Noise represents a random matrix of noise used by the generator as input
             noise = torch.randn(batch_size, noise_dimension, 1, 1).to(device)
             fake_image = generator(noise)
@@ -81,3 +89,49 @@ def train_fn(generator,
                     step += 1
             else:
                 print(f"Batch {batch_idx}/{len(loader)}")
+
+
+def train_model(config: Config):
+    fixed_noise = torch.randn(config.batch_size, config.noise_dimension, 1, 1).to(config.device)
+    writer_fake = SummaryWriter(f"assets/logs/runs/fake")  # For fake images
+    writer_real = SummaryWriter(f"assets/logs/runs/real")  # For real images
+
+    discriminator = Discriminator(config.number_of_classes, config.features_discriminator).to(config.device)
+    initialize_model_weights(discriminator)
+    generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator).to(config.device)
+    initialize_model_weights(generator)
+
+    opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
+    opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
+    criterion = nn.BCELoss()  # Loss function
+
+    # Assuming same transform for train and val
+    transforms = get_transforms(
+        size=config.size,
+        number_of_channels=config.number_of_classes
+    )
+
+    training_loader, _ = get_loaders(
+        train_dir=config.train_path,
+        val_dir=config.val_path,
+        batch_size=config.batch_size,
+        train_transform=transforms,
+        val_transform=transforms,
+        num_workers=4,
+        pin_memory=True,
+    )
+
+    train_fn(
+        generator=generator,
+        discriminator=discriminator,
+        loader=training_loader,
+        noise_dimension=config.noise_dimension,
+        criterion=criterion,
+        opt_discriminator=opt_discriminator,
+        opt_generator=opt_generator,
+        epochs=config.epoch,
+        writer_fake=writer_fake,
+        writer_real=writer_real,
+        fixed_noise=fixed_noise,
+        device=config.device
+    )
