@@ -1,5 +1,8 @@
 import numpy as np
 
 
-def load_np(name) -> np.ndarray:
-    return np.load(f'{name}.npy')  # load
+def load_np(path, extension) -> np.ndarray:
+    if extension == 'npy':
+        return np.load(f'{path}.{extension}')
+    if extension == 'txt':
+        return np.genfromtxt(f'{path}.{extension}')
