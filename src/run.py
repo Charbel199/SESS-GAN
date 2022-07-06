@@ -1,20 +1,17 @@
 import argparse
 import torch
-from torch.utils.tensorboard import SummaryWriter
-from model.discriminator import Discriminator
-from model.generator import Generator
-from model.weights import initialize_model_weights
-from model.preprocessing import transforms
+from conf import Config
+from train import train_model
 
 
-def process_args(args):
+def process_args(args) -> Config:
     if torch.cuda.is_available() and args.device == 'cpu':
         print("WARNING: You have a CUDA device, so you should probably run with -d cuda:0")
+    config: Config = Config(**vars(args))
+    return config
 
-    return args
 
-
-def parse_args():
+def parse_args() -> Config:
     parser = argparse.ArgumentParser(description='Run SimulatorGAN')
 
     parser.add_argument('-b', '--batch-size', type=int, default=32, help='Batch size')
@@ -24,27 +21,23 @@ def parse_args():
     parser.add_argument('-lr', '--learning-rate', type=float, default=3e-4, help='Learning Rate')
     parser.add_argument('-nd', '--noise-dimension', type=int, default=100, help='Noise dimension')
     parser.add_argument('-nc', '--number-of-classes', type=int, default=3, help='Number of classes')
-    parser.add_argument('-fd', '--features_discriminator', type=int, default=64,
+    parser.add_argument('-fd', '--features-discriminator', type=int, default=64,
                         help='Scaling discriminator features factor')
-    parser.add_argument('-fd', '--features_generator', type=int, default=64, help='Scaling generator features factor')
+    parser.add_argument('-fg', '--features-generator', type=int, default=64,
+                        help='Scaling generator features factor')
+    parser.add_argument('-tp', '--train-path', type=str, required=True, help='Training data path')
+    parser.add_argument('-vp', '--val-path', type=str, required=True, help='Validation data path')
+    parser.add_argument('-df', '--data-format', type=str, default='txt', help='Data type (txt, csv ...)')
 
     args = parser.parse_args()
-    args = process_args(args)
+    conf = process_args(args)
 
-    return args
+    return conf
 
 
 def main():
-    args = parse_args()
-
-    fixed_noise = torch.randn(args.batch_size, args.noise_dimension, 1, 1).to(args.device)
-    writer_fake = SummaryWriter(f"assets/logs/runs/fake")  # For fake images
-    writer_real = SummaryWriter(f"assets/logs/runs/real")  # For real images
-
-    discriminator = Discriminator(args.number_of_classes, args.features_discriminator).to(args.device)
-    initialize_model_weights(discriminator)
-    generator = Generator(args.noise_dimension, args.number_of_classes, args.features_generator).to(args.device)
-    initialize_model_weights(generator)
+    conf = parse_args()
+    train_model(config=conf)
 
 
 if __name__ == '__main__':
