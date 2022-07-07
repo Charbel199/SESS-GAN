@@ -28,6 +28,7 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-tp', '--train-path', type=str, required=True, help='Training data path')
     parser.add_argument('-vp', '--val-path', type=str, required=True, help='Validation data path')
     parser.add_argument('-df', '--data-format', type=str, default='txt', help='Data type (txt, csv ...)')
+    parser.add_argument('-ks', '--kernel-size', type=int, default='3', help='Convolution kernel size')
 
     args = parser.parse_args()
     conf = process_args(args)
