@@ -1,13 +1,14 @@
-import torchvision.transforms as transforms
+import albumentations as A
 
 
 def get_transforms(size, number_of_channels):
-    transf = transforms.Compose(
+    transf = A.Compose(
         [
-            transforms.Resize((size, size)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                [0.5 for x in range(number_of_channels)], [0.5 for x in range(number_of_channels)]
+            A.Resize(size, size),
+            A.Normalize(
+                mean=[0.5 for x in range(number_of_channels)],
+                std=[0.5 for x in range(number_of_channels)],
+                max_pixel_value=1
             )
         ]
     )
