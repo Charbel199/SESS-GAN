@@ -1,17 +1,17 @@
 import argparse
 import torch
-from conf import Config
+from conf import ModelConfig
 from train import train_model
 
 
-def process_args(args) -> Config:
+def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
         print("WARNING: You have a CUDA device, so you should probably run with -d cuda:0")
-    config: Config = Config(**vars(args))
+    config: ModelConfig = ModelConfig(args)
     return config
 
 
-def parse_args() -> Config:
+def parse_args() -> ModelConfig:
     parser = argparse.ArgumentParser(description='Run SimulatorGAN')
 
     parser.add_argument('-b', '--batch-size', type=int, default=32, help='Batch size')

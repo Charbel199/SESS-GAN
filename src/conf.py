@@ -1,4 +1,4 @@
-class Config:
+class ModelConfig:
 
     def __init__(self, args):
         self.batch_size: int = args.batch_size
