@@ -2,7 +2,8 @@ import argparse
 import torch
 from conf import ModelConfig
 from train import train_model
-
+import logger.log as log
+logger = log.setup_custom_logger()
 
 def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
@@ -39,6 +40,7 @@ def parse_args() -> ModelConfig:
 def main():
     conf = parse_args()
     train_model(config=conf)
+    logger.info('Done training')
 
 
 if __name__ == '__main__':
