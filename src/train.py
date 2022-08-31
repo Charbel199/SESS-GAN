@@ -11,9 +11,10 @@ import torch.nn as nn
 from dataset import get_loaders
 from model.preprocessing import get_transforms
 from conf import ModelConfig
-import torchsummary
+from torchsummary import summary
 import torch.nn.functional as F
 from logger.log import LoggerService
+import os
 
 logger = LoggerService.get_instance()
 
@@ -99,49 +100,74 @@ def train_fn(generator,
 
 
 def train_model(config: ModelConfig):
-    fixed_noise = torch.randn(config.batch_size, config.noise_dimension, 1, 1).to(config.device)
-    writer_fake = SummaryWriter(f"assets/logs/runs/fake")  # For fake images
-    writer_real = SummaryWriter(f"assets/logs/runs/real")  # For real images
+    if config.load:
+        logger.debug("Loading models")
+        kwargs, state = torch.load(f"{os.path.join(config.models_path, 'generator.pkl')}")
+        generator = Generator(**kwargs)
+        generator.load_state_dict(state)
 
-    discriminator = Discriminator(config.number_of_classes, config.features_discriminator, 2).to(config.device)
-    initialize_model_weights(discriminator)
-    generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator,
-                          config.kernel_size).to(config.device)
-    initialize_model_weights(generator)
+        kwargs, state = torch.load(f"{os.path.join(config.models_path, 'discriminator.pkl')}")
+        discriminator = Discriminator(**kwargs)
+        discriminator.load_state_dict(state)
 
+        logger.debug("Loaded models")
+    else:
+        fixed_noise = torch.randn(config.batch_size, config.noise_dimension, 1, 1).to(config.device)
+        writer_fake = SummaryWriter(f"assets/logs/runs/fake")  # For fake images
+        writer_real = SummaryWriter(f"assets/logs/runs/real")  # For real images
 
-    opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
-    opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
-    criterion = nn.BCELoss()  # Loss function
+        discriminator = Discriminator(config.number_of_classes, config.features_discriminator, 2).to(config.device)
+        initialize_model_weights(discriminator)
+        generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator,
+                              config.kernel_size, config.device).to(config.device)
+        initialize_model_weights(generator)
 
-    # Assuming same transform for train and val
-    # transforms = get_transforms(
-    #     size=config.size,
-    #     number_of_channels=config.number_of_classes
-    # )
-    transforms = None
+        summary(generator, (config.noise_dimension, 1, 1), device=config.device)
+        summary(discriminator, (config.number_of_classes, config.size, config.size), device=config.device)
 
-    training_loader, _ = get_loaders(
-        train_dir=config.train_path,
-        val_dir=config.val_path,
-        batch_size=config.batch_size,
-        train_transform=transforms,
-        val_transform=transforms,
-        num_workers=4,
-        pin_memory=True,
-    )
+        opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
+        opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
+        criterion = nn.BCELoss()  # Loss function
 
-    train_fn(
-        generator=generator,
-        discriminator=discriminator,
-        loader=training_loader,
-        noise_dimension=config.noise_dimension,
-        criterion=criterion,
-        opt_discriminator=opt_discriminator,
-        opt_generator=opt_generator,
-        epochs=config.epoch,
-        writer_fake=writer_fake,
-        writer_real=writer_real,
-        fixed_noise=fixed_noise,
-        device=config.device
-    )
+        # Assuming same transform for train and val
+        # transforms = get_transforms(
+        #     size=config.size,
+        #     number_of_channels=config.number_of_classes
+        # )
+        transforms = None
+
+        training_loader, _ = get_loaders(
+            train_dir=config.train_path,
+            val_dir=config.val_path,
+            batch_size=config.batch_size,
+            train_transform=transforms,
+            val_transform=transforms,
+            num_workers=4,
+            pin_memory=True,
+        )
+
+        train_fn(
+            generator=generator,
+            discriminator=discriminator,
+            loader=training_loader,
+            noise_dimension=config.noise_dimension,
+            criterion=criterion,
+            opt_discriminator=opt_discriminator,
+            opt_generator=opt_generator,
+            epochs=config.epoch,
+            writer_fake=writer_fake,
+            writer_real=writer_real,
+            fixed_noise=fixed_noise,
+            device=config.device
+        )
+
+        if config.save:
+
+            logger.debug(f"Saving models in {config.models_path}")
+            torch.save([generator.kwargs, generator.state_dict()], f"{os.path.join(config.models_path, 'generator.pkl')}")
+            torch.save([discriminator.kwargs, discriminator.state_dict()], f"{os.path.join(config.models_path, 'discriminator.pkl')}")
+            logger.debug(f"Saved models in {config.models_path}")
+
+    fake_image = generator.generate_image(show_environment=True)
+
+    print(fake_image)

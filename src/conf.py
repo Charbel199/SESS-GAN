@@ -14,3 +14,6 @@ class ModelConfig:
         self.val_path: str = args.val_path
         self.data_format: str = args.data_format
         self.kernel_size: int = args.kernel_size
+        self.save: int = args.save
+        self.load: int = args.load
+        self.models_path = args.models_path

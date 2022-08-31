@@ -32,6 +32,9 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-vp', '--val-path', type=str, required=True, help='Validation data path')
     parser.add_argument('-df', '--data-format', type=str, default='txt', help='Data type (txt, csv ...)')
     parser.add_argument('-ks', '--kernel-size', type=int, default='3', help='Convolution kernel size')
+    parser.add_argument('--save', type=int, default='0', help='Save models')
+    parser.add_argument('--load', type=int, default='0', help='Load models')
+    parser.add_argument('--models_path', type=str, default='', help='Models path')
 
     args = parser.parse_args()
     conf = process_args(args)
