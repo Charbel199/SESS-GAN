@@ -5,18 +5,31 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def setup_custom_logger():
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+class LoggerService(object):
+    __instance = None
 
-    console_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler(str(os.getenv('LOG_FILE_PATH')))
+    def __init__(self):
+        if self.__class__.__instance:
+            raise Exception
 
-    console_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
+        formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
 
-    logger = logging.getLogger('SimulatorGAN')
-    logger.setLevel(logging.DEBUG)
+        console_handler = logging.StreamHandler()
+        file_handler = logging.FileHandler(str(os.getenv('LOG_FILE_PATH')))
 
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-    return logger
+        console_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+
+        logger = logging.getLogger('SimulatorGAN')
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = False
+        logger.addHandler(console_handler)
+        logger.addHandler(file_handler)
+        self.__class__.__instance = logger
+
+    @classmethod
+    def get_instance(cls):
+        if not cls.__instance:
+            cls()
+
+        return cls.__instance

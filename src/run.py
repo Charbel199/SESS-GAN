@@ -2,12 +2,14 @@ import argparse
 import torch
 from conf import ModelConfig
 from train import train_model
-import logger.log as log
-logger = log.setup_custom_logger()
+from logger.log import LoggerService
+
+logger = LoggerService.get_instance()
+
 
 def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
-        print("WARNING: You have a CUDA device, so you should probably run with -d cuda:0")
+        logger.warn("You have a CUDA device, so you should probably run with -d cuda:0")
     config: ModelConfig = ModelConfig(args)
     return config
 

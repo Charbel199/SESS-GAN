@@ -1,3 +1,5 @@
+import logging
+
 import torchvision
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -9,8 +11,11 @@ import torch.nn as nn
 from dataset import get_loaders
 from model.preprocessing import get_transforms
 from conf import ModelConfig
-from torchsummary import summary
+import torchsummary
 import torch.nn.functional as F
+from logger.log import LoggerService
+
+logger = LoggerService.get_instance()
 
 
 def train_fn(generator,
@@ -28,7 +33,7 @@ def train_fn(generator,
     step = 0
     generator.train()
     discriminator.train()
-
+    logger.info('Starting training')
     for epoch in range(epochs):
         for batch_idx, real_image in enumerate(loader):
             batch_size = real_image.shape[0]
@@ -71,11 +76,11 @@ def train_fn(generator,
             opt_generator.step()
 
             # Tensorboard code
-            # if batch_idx == 0:
-            #     print(
-            #         f"Epoch [{epoch}/{epochs}] Batch {batch_idx}/{len(loader)} \
-            #               Loss D: {loss_discriminator:.4f}, loss G: {loss_generator:.4f}"
-            #     )
+            if batch_idx == 0:
+                logger.debug(
+                    f"Epoch [{epoch}/{epochs}] Batch {batch_idx}/{len(loader)} \
+                          Loss D: {loss_discriminator:.4f}, loss G: {loss_generator:.4f}"
+                )
             #
             #     with torch.no_grad():
             #         fake = generator(fixed_noise)
@@ -89,8 +94,8 @@ def train_fn(generator,
             #             "Real Images", img_grid_real, global_step=step
             #         )
             #         step += 1
-            # else:
-            #     print(f"Batch {batch_idx}/{len(loader)}")
+            else:
+                logger.debug(f"Batch {batch_idx}/{len(loader)}")
 
 
 def train_model(config: ModelConfig):
@@ -100,11 +105,10 @@ def train_model(config: ModelConfig):
 
     discriminator = Discriminator(config.number_of_classes, config.features_discriminator, 2).to(config.device)
     initialize_model_weights(discriminator)
-    generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator, config.kernel_size).to(config.device)
+    generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator,
+                          config.kernel_size).to(config.device)
     initialize_model_weights(generator)
 
-    summary(generator, (config.noise_dimension, 1, 1), device=config.device)
-    summary(discriminator, (config.number_of_classes, config.size, config.size), device=config.device)
 
     opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
     opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
