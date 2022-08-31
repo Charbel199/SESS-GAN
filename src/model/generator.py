@@ -1,9 +1,21 @@
 import torch.nn as nn
+import torch
+from matplotlib import pyplot as plt
 
 
 class Generator(nn.Module):
-    def __init__(self, noise_dimension, number_of_classes, features_g, kernel_size):
+    def __init__(self, noise_dimension, number_of_classes, features_g, kernel_size, device):
+        self.noise_dimension = noise_dimension
+        self.number_of_classes = number_of_classes
+        self.features_g = features_g
+        self.kernel_size = kernel_size
+        self.device = device
         super(Generator, self).__init__()
+        self.kwargs = {'noise_dimension': noise_dimension,
+                       'number_of_classes': number_of_classes,
+                       'features_g': features_g,
+                       'kernel_size': kernel_size,
+                       'device': device}
         # Based on  DCGAN paper
         self.network = nn.Sequential(
             self._block(noise_dimension, features_g * 16, kernel_size, 1, 0),
@@ -25,3 +37,15 @@ class Generator(nn.Module):
 
     def forward(self, x):
         return self.network(x)
+
+    def generate_image(self, show_environment=False):
+        noise = torch.randn(1, self.noise_dimension, 1, 1).to(self.device)
+        generated_environment = self.forward(noise)[0]
+        generated_environment = torch.argmax(generated_environment, dim=0)
+        if show_environment:
+            plt.rcParams["figure.figsize"] = [7.00, 3.50]
+            plt.rcParams["figure.autolayout"] = True
+            im = plt.imshow(generated_environment, cmap="jet")
+            plt.colorbar(im)
+            plt.show()
+        return generated_environment

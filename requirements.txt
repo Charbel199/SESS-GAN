@@ -4,3 +4,4 @@ numpy~=1.22.3
 albumentations~=1.1.0
 torchsummary~=1.5.1
 python-dotenv~=0.20.0
+matplotlib~=3.5.1

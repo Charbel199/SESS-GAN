@@ -5,6 +5,10 @@ class Discriminator(nn.Module):
     def __init__(self, number_of_classes, features_d, kernel_size):
         # Features_d is just used for simpler scaling of the convolution neural network
         super(Discriminator, self).__init__()
+        self.kwargs = {'number_of_classes': number_of_classes,
+                       'features_d': features_d,
+                       'kernel_size': kernel_size}
+
         # Based on  DCGAN paper
         self.network = nn.Sequential(
             nn.Conv2d(number_of_classes, features_d, kernel_size=4, stride=2, padding=1),
