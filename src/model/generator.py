@@ -40,12 +40,13 @@ class Generator(nn.Module):
 
     def generate_image(self, show_environment=False):
         noise = torch.randn(1, self.noise_dimension, 1, 1).to(self.device)
-        generated_environment = self.forward(noise)[0]
+        generated_environment = self.forward(noise)
+        generated_environment = generated_environment[0]
         generated_environment = torch.argmax(generated_environment, dim=0)
         if show_environment:
             plt.rcParams["figure.figsize"] = [7.00, 3.50]
             plt.rcParams["figure.autolayout"] = True
-            im = plt.imshow(generated_environment, cmap="jet")
+            im = plt.imshow(generated_environment.cpu(), cmap="jet")
             plt.colorbar(im)
             plt.show()
         return generated_environment

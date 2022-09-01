@@ -105,10 +105,12 @@ def train_model(config: ModelConfig):
         kwargs, state = torch.load(f"{os.path.join(config.models_path, 'generator.pkl')}")
         generator = Generator(**kwargs)
         generator.load_state_dict(state)
+        generator.to(config.device)
 
         kwargs, state = torch.load(f"{os.path.join(config.models_path, 'discriminator.pkl')}")
         discriminator = Discriminator(**kwargs)
         discriminator.load_state_dict(state)
+        discriminator.to(config.device)
 
         logger.debug("Loaded models")
     else:
