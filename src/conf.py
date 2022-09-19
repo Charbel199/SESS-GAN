@@ -15,7 +15,6 @@ class ModelConfig:
         self.size: int = args.size
         self.learning_rate: float = args.learning_rate
         self.noise_dimension: int = args.noise_dimension
-        self.number_of_classes: int = args.number_of_classes
         self.features_discriminator: int = args.features_discriminator
         self.features_generator: int = args.features_generator
         self.train_path: str = args.train_path
@@ -26,9 +25,17 @@ class ModelConfig:
         self.load: int = args.load
         self.models_path: str = args.models_path
         self.scales: List = args.scales
+        self.output_path: str = args.output_path
+        self.environment: str = args.environment
+        self.number_of_filters: str = args.nfc
+        self.number_of_layers: int = args.layers
 
         scales = [[x, x] for x in self.scales]
-        self.num_scales = len(scales)
+        self.num_of_scales = len(scales)  # Only the downsample scales
+        self.total_num_of_scales = self.num_of_scales + 1  # Downsample scales including original scale
+
+        # To be populated
+        self.token_list = []
 
 
 def process_args(args) -> ModelConfig:
@@ -47,7 +54,6 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-s', '--size', type=int, default=50, help='Image size')
     parser.add_argument('-lr', '--learning-rate', type=float, default=3e-4, help='Learning Rate')
     parser.add_argument('-nd', '--noise-dimension', type=int, default=100, help='Noise dimension')
-    parser.add_argument('-nc', '--number-of-classes', type=int, default=3, help='Number of classes')
     parser.add_argument('-fd', '--features-discriminator', type=int, default=64,
                         help='Scaling discriminator features factor')
     parser.add_argument('-fg', '--features-generator', type=int, default=64,
@@ -59,6 +65,10 @@ def parse_args() -> ModelConfig:
     parser.add_argument('--save', type=int, default='0', help='Save models')
     parser.add_argument('--load', type=int, default='0', help='Load models')
     parser.add_argument('--models_path', type=str, default='', help='Models path')
+    parser.add_argument('--output_path', type=str, default='', help='Output path')
+    parser.add_argument('--environment', type=str, default='robot-navigation', help='Simulation environment')
+    parser.add_argument('--nfc', type=int, help="Number of filters for the convolution layers", default=64)
+    parser.add_argument('--layers', type=int, help="Number of convolution layers", default=3)
     parser.add_argument('--scales', nargs='+', type=float, help="Scales descending (< 1 and > 0)",
                         default=[0.88, 0.75, 0.5])
 
