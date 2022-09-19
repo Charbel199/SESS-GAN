@@ -1,6 +1,7 @@
 import argparse
 import torch
 from logger.log import LoggerService
+from typing import List
 
 logger = LoggerService.get_instance()
 
@@ -23,7 +24,11 @@ class ModelConfig:
         self.kernel_size: int = args.kernel_size
         self.save: int = args.save
         self.load: int = args.load
-        self.models_path = args.models_path
+        self.models_path: str = args.models_path
+        self.scales: List = args.scales
+
+        scales = [[x, x] for x in self.scales]
+        self.num_scales = len(scales)
 
 
 def process_args(args) -> ModelConfig:
@@ -54,6 +59,8 @@ def parse_args() -> ModelConfig:
     parser.add_argument('--save', type=int, default='0', help='Save models')
     parser.add_argument('--load', type=int, default='0', help='Load models')
     parser.add_argument('--models_path', type=str, default='', help='Models path')
+    parser.add_argument('--scales', nargs='+', type=float, help="Scales descending (< 1 and > 0)",
+                        default=[0.88, 0.75, 0.5])
 
     args = parser.parse_args()
     conf = process_args(args)
