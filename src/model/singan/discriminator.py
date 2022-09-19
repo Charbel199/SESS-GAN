@@ -5,7 +5,7 @@ from model.singan.conv_block import ConvBlock
 from conf import ModelConfig
 
 
-class Level_WDiscriminator(nn.Module):
+class Discriminator(nn.Module):
     """ Patch based Discriminator. Uses Namespace opt. """
 
     def __init__(self, config: ModelConfig):
