@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from logger.log import LoggerService
 import os
 from train.abstract_train import ModelTrainer
+from environments.robot_navigation.tokens import TOKEN_LIST as robot_navigation_token_list
 
 logger = LoggerService.get_instance()
 
@@ -97,6 +98,9 @@ class SimpleModelTrainer(ModelTrainer):
                     logger.debug(f"Batch {batch_idx}/{len(loader)}")
 
     def train_model(self, config: ModelConfig):
+        if config.environment == 'robot-navigation':
+            config.token_list = robot_navigation_token_list
+
         if config.load:
             logger.debug("Loading models")
             kwargs, state = torch.load(f"{os.path.join(config.models_path, 'generator.pkl')}")
@@ -115,14 +119,14 @@ class SimpleModelTrainer(ModelTrainer):
             writer_fake = SummaryWriter(f"../assets/logs/runs/fake")  # For fake images
             writer_real = SummaryWriter(f"../assets/logs/runs/real")  # For real images
 
-            discriminator = Discriminator(config.number_of_classes, config.features_discriminator, 2).to(config.device)
+            discriminator = Discriminator(len(config.token_list), config.features_discriminator, 2).to(config.device)
             basic_weights_init(discriminator)
-            generator = Generator(config.noise_dimension, config.number_of_classes, config.features_generator,
+            generator = Generator(config.noise_dimension, len(config.token_list), config.features_generator,
                                   config.kernel_size, config.device).to(config.device)
             basic_weights_init(generator)
 
             summary(generator, (config.noise_dimension, 1, 1), device=config.device)
-            summary(discriminator, (config.number_of_classes, config.size, config.size), device=config.device)
+            summary(discriminator, (len(config.token_list), config.size, config.size), device=config.device)
 
             opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
             opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
