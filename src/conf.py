@@ -29,6 +29,7 @@ class ModelConfig:
         self.environment: str = args.environment
         self.number_of_filters: str = args.nfc
         self.number_of_layers: int = args.layers
+        self.noise_amp: float = 1.0 # Check functionality
 
         scales = [[x, x] for x in self.scales]
         self.num_of_scales = len(scales)  # Only the downsample scales
