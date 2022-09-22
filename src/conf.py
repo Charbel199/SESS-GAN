@@ -14,7 +14,10 @@ class ModelConfig:
         self.epoch: int = args.epoch
         self.device: str = args.device
         self.size: int = args.size
-        self.learning_rate: float = args.learning_rate
+        self.learning_rate_generator: float = args.lr_g
+        self.learning_rate_discriminator: float = args.lr_d
+        self.beta1: float = args.beta1
+        self.gamma: float = args.gamma
         self.noise_dimension: int = args.noise_dimension
         self.features_discriminator: int = args.features_discriminator
         self.features_generator: int = args.features_generator
@@ -55,7 +58,10 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-e', '--epoch', type=int, default=10, help='Number of epochs')
     parser.add_argument('-d', '--device', type=str, default='cpu', help='Device (cpu, cuda:0 ...)')
     parser.add_argument('-s', '--size', type=int, default=50, help='Image size')
-    parser.add_argument('-lr', '--learning-rate', type=float, default=3e-4, help='Learning Rate')
+    parser.add_argument('-lr_g', '--learning-rate-generator', type=float, default=3e-4, help='Learning Rate for generator')
+    parser.add_argument('-lr_d', '--learning-rate-discriminator', type=float, default=3e-4, help='Learning Rate for discriminator')
+    parser.add_argument('-beta1', type=float, default=0.5, help='Beta1 for learning rate')
+    parser.add_argument('-gamma', type=float, default=0.1, help='Gamma for learning rate')
     parser.add_argument('-nd', '--noise-dimension', type=int, default=100, help='Noise dimension')
     parser.add_argument('-fd', '--features-discriminator', type=int, default=64,
                         help='Scaling discriminator features factor')
@@ -72,7 +78,7 @@ def parse_args() -> ModelConfig:
     parser.add_argument('--environment', type=str, default=Environment.ROBOT_NAVIGATION, help='Simulation environment')
     parser.add_argument('--nfc', type=int, help="Number of filters for the convolution layers", default=64)
     parser.add_argument('--layers', type=int, help="Number of convolution layers", default=3)
-    parser.add_argument('--pad_type', type=str, help="Padding type", default=PaddingType.NOISE)
+    parser.add_argument('--pad_type', type=str, help="Padding type", default=PaddingType.REFLECTION)
     parser.add_argument('--scales', nargs='+', type=float, help="Scales descending (< 1 and > 0)",
                         default=[0.88, 0.75, 0.5])
 

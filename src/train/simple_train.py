@@ -128,8 +128,8 @@ class SimpleModelTrainer(ModelTrainer):
             summary(generator, (config.noise_dimension, 1, 1), device=config.device)
             summary(discriminator, (len(config.token_list), config.size, config.size), device=config.device)
 
-            opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
-            opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate, betas=(0.5, 0.999))
+            opt_discriminator = optim.Adam(discriminator.parameters(), lr=config.learning_rate_discriminator, betas=(0.5, 0.999))
+            opt_generator = optim.Adam(generator.parameters(), lr=config.learning_rate_generator, betas=(0.5, 0.999))
             criterion = nn.BCELoss()  # Loss function
 
             # Assuming same transform for train and val
