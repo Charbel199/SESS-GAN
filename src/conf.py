@@ -18,6 +18,10 @@ class ModelConfig:
         self.learning_rate_discriminator: float = args.lr_d
         self.beta1: float = args.beta1
         self.gamma: float = args.gamma
+        self.alpha: float = args.alpha
+        self.lambda_grad: float = args.lambda_grad
+        self.discriminator_steps: int = args.discriminator_steps
+        self.generator_steps: int = args.generator_steps
         self.noise_dimension: int = args.noise_dimension
         self.features_discriminator: int = args.features_discriminator
         self.features_generator: int = args.features_generator
@@ -42,7 +46,7 @@ class ModelConfig:
 
         # To be populated
         self.token_list = []
-
+        self.noise_amp = 1.0  # noise amp for lowest scale always starts at 1
 
 def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
@@ -62,6 +66,10 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-lr_d', '--learning-rate-discriminator', type=float, default=3e-4, help='Learning Rate for discriminator')
     parser.add_argument('-beta1', type=float, default=0.5, help='Beta1 for learning rate')
     parser.add_argument('-gamma', type=float, default=0.1, help='Gamma for learning rate')
+    parser.add_argument('-alpha', type=int, default=100, help='Reconstruction loss weight')
+    parser.add_argument('-lambda_grad', type=float, help="Gradient penalty weight", default=0.1)
+    parser.add_argument('-generator_steps', type=int, default=3, help='Number of steps for generator training')
+    parser.add_argument('-discriminator_steps', type=int, default=3, help='Number of steps for discriminator training')
     parser.add_argument('-nd', '--noise-dimension', type=int, default=100, help='Noise dimension')
     parser.add_argument('-fd', '--features-discriminator', type=int, default=64,
                         help='Scaling discriminator features factor')
