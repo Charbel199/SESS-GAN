@@ -2,7 +2,8 @@ import argparse
 import torch
 from logger.log import LoggerService
 from typing import List
-
+from enums.padding_type import PaddingType
+from enums.environment import Environment
 logger = LoggerService.get_instance()
 
 
@@ -26,6 +27,7 @@ class ModelConfig:
         self.models_path: str = args.models_path
         self.scales: List = args.scales
         self.output_path: str = args.output_path
+        self.pad_type: str = args.pad_type
         self.environment: str = args.environment
         self.number_of_filters: str = args.nfc
         self.number_of_layers: int = args.layers
@@ -67,9 +69,10 @@ def parse_args() -> ModelConfig:
     parser.add_argument('--load', type=int, default='0', help='Load models')
     parser.add_argument('--models_path', type=str, default='', help='Models path')
     parser.add_argument('--output_path', type=str, default='', help='Output path')
-    parser.add_argument('--environment', type=str, default='robot-navigation', help='Simulation environment')
+    parser.add_argument('--environment', type=str, default=Environment.ROBOT_NAVIGATION, help='Simulation environment')
     parser.add_argument('--nfc', type=int, help="Number of filters for the convolution layers", default=64)
     parser.add_argument('--layers', type=int, help="Number of convolution layers", default=3)
+    parser.add_argument('--pad_type', type=str, help="Padding type", default=PaddingType.NOISE)
     parser.add_argument('--scales', nargs='+', type=float, help="Scales descending (< 1 and > 0)",
                         default=[0.88, 0.75, 0.5])
 
