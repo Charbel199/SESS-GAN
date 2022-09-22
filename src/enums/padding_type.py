@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class PaddingType(Enum):
-    NOISE = 'noise'
+    ZERO = 'zero'
     REFLECTION = 'reflection'
