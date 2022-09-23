@@ -39,6 +39,7 @@ class ModelConfig:
         self.number_of_filters: str = args.nfc
         self.number_of_layers: int = args.layers
         self.noise_amp: float = 1.0 # Check functionality
+        self.noise_update: float = 0.1
 
         self.scales = [[x, x] for x in self.scales]
         self.num_of_scales = len(self.scales)  # Only the downsample scales
@@ -47,6 +48,7 @@ class ModelConfig:
         # To be populated
         self.token_list = []
         self.noise_amp = 1.0  # noise amp for lowest scale always starts at 1
+        self.current_output_path = ''
 
 def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
