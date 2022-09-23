@@ -14,8 +14,8 @@ class ModelConfig:
         self.epoch: int = args.epoch
         self.device: str = args.device
         self.size: int = args.size
-        self.learning_rate_generator: float = args.lr_g
-        self.learning_rate_discriminator: float = args.lr_d
+        self.learning_rate_generator: float = args.learning_rate_generator
+        self.learning_rate_discriminator: float = args.learning_rate_discriminator
         self.beta1: float = args.beta1
         self.gamma: float = args.gamma
         self.alpha: float = args.alpha
@@ -40,8 +40,8 @@ class ModelConfig:
         self.number_of_layers: int = args.layers
         self.noise_amp: float = 1.0 # Check functionality
 
-        scales = [[x, x] for x in self.scales]
-        self.num_of_scales = len(scales)  # Only the downsample scales
+        self.scales = [[x, x] for x in self.scales]
+        self.num_of_scales = len(self.scales)  # Only the downsample scales
         self.total_num_of_scales = self.num_of_scales + 1  # Downsample scales including original scale
 
         # To be populated
