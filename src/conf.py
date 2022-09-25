@@ -38,6 +38,7 @@ class ModelConfig:
         self.environment: str = args.environment
         self.number_of_filters: str = args.nfc
         self.number_of_layers: int = args.layers
+        self.starting_scale: int = args.starting_scale
         self.noise_amp: float = 1.0 # Check functionality
         self.noise_update: float = 0.1
 
@@ -89,6 +90,7 @@ def parse_args() -> ModelConfig:
     parser.add_argument('--nfc', type=int, help="Number of filters for the convolution layers", default=64)
     parser.add_argument('--layers', type=int, help="Number of convolution layers", default=3)
     parser.add_argument('--pad_type', type=str, help="Padding type", default=PaddingType.REFLECTION)
+    parser.add_argument('--starting_scale', type=int, help="Starting scale index", default=0)
     parser.add_argument('--scales', nargs='+', type=float, help="Scales descending (< 1 and > 0)",
                         default=[0.88, 0.75, 0.5])
 
