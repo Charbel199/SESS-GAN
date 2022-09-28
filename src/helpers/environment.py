@@ -1,9 +1,8 @@
+import numpy as np
 import torch
 from utils import load_np
 import glob
 import os
-from typing import List
-import torch.nn.functional as F
 
 
 def load_environments(environments_path, tokens, data_format) -> torch.Tensor:
@@ -11,9 +10,11 @@ def load_environments(environments_path, tokens, data_format) -> torch.Tensor:
     environments = []
     for raw_env in raw_environments:
         data = load_np(raw_env, data_format)
+        data = np.nan_to_num(data, nan=0)
         one_hot_environment = tokens_to_one_hot_environment(data, tokens)
         environments.append(one_hot_environment)
     environments = torch.stack(environments)
+
     return environments
 
 
