@@ -45,6 +45,12 @@ class CascadedModelTrainer(ModelTrainer):
         # Generate a list of all real input environments (Scaled & Original)
         reals = [*scaled_list, real]
 
+        # import matplotlib.pyplot as plt
+        # from helpers.environment import one_hot_environment_to_tokens
+        # for s in reals:
+        #     plt.imshow(one_hot_environment_to_tokens(s[0]))
+        #     plt.show()
+
         # Generate tensor of 0 (since we are starting with the first scale and there is no previous scale inputs)
         # with the size of the first scale
         input_from_prev_scale = torch.zeros_like(reals[0])
