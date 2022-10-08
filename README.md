@@ -12,25 +12,25 @@ We are also using Unity to generate inputs for our model and to visualize and te
 Here are some examples of some preliminary testing:
 - **Input**
 
-<img src="doc/Factory1.png" width="70%">
+<img src="docs/Factory1.png" width="70%">
 
 - Output
 
-<img src="doc/Factory2.png" width="45%">
-<img src="doc/Factory3.png" width="45%">
-<img src="doc/Factory4.png" width="45%">
-<img src="doc/Factory5.png" width="45%">
+<img src="docs/Factory2.png" width="45%">
+<img src="docs/Factory3.png" width="45%">
+<img src="docs/Factory4.png" width="45%">
+<img src="docs/Factory5.png" width="45%">
 
 - **Input**
 
-<img src="doc/Race1.jpeg" width="70%">
+<img src="docs/Race1.jpeg" width="70%">
 
 - Output
 
-<img src="doc/Race2.png" width="45%">
-<img src="doc/Race3.png" width="45%">
-<img src="doc/Race4.png" width="45%">
-<img src="doc/Race5.png" width="45%">
+<img src="docs/Race2.png" width="45%">
+<img src="docs/Race3.png" width="45%">
+<img src="docs/Race4.png" width="45%">
+<img src="docs/Race5.png" width="45%">
 
 
 ## Next Steps
