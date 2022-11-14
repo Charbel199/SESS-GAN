@@ -56,7 +56,21 @@ class GeneticAlgorithm:
         return agents
 
     def mutation(self, agents: List[Agent]) -> List[Agent]:
-        pass
+        for agent in agents:
+            if random.uniform(0.0, 1.0) <= 0.1:
+                weights = agent.network.weights
+                shapes = [a.shape for a in weights]
+                flattened = np.concatenate([a.flatten() for a in weights])
+                randint = random.randint(0, len(flattened) - 1)
+                flattened[randint] = np.random.randn()
+                newarray = []
+                indeweights = 0
+                for shape in shapes:
+                    size = np.product(shape)
+                    newarray.append(flattened[indeweights: indeweights + size].reshape(shape))
+                    indeweights += size
+                agent.network.weights = newarray
+        return agents
 
     def fitness(self, agents: List[Agent]) -> List[Agent]:
         for agent in agents:
@@ -67,9 +81,6 @@ class GeneticAlgorithm:
             # Update fitness score of agent
             agent.fitness = 1
         return agents
-
-    def evaluate(self):
-        pass
 
     def cross_over(self, agents: List[Agent]):
         offspring = []
