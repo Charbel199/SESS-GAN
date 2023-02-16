@@ -1,9 +1,8 @@
-import numpy as np
 from torch.utils.data import Dataset
 import glob, os
 import torch
 from torch.utils.data import DataLoader
-from utils import load_np
+from helpers.utils import load_np
 
 
 class EnvironmentDataset(Dataset):
