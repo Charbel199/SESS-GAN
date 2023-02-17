@@ -1,0 +1,11 @@
+version: '2.3'
+
+services:
+  simulator_gan:
+    image: simulator_gan:latest
+    build:
+      context: ./src
+      dockerfile: ./docker/Dockerfile
+    runtime: nvidia
+    volumes:
+      - ./src:/app/src
