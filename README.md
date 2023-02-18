@@ -35,7 +35,7 @@ Here are some examples of some preliminary testing:
 
 ## Next Steps
 
-- Implement policy gradient to improve the fault-revealing power of the environment generator
+- Implement a genetic evolution algiorithm to improve the fault-revealing power of the environment generator
 - Implement the option of having more than a single input
 - Add quantitative evaluation metrics
-- Implement robot control softwares in python (Currently only implemented in Unity)
+- Implement robot control softwares in python (Currently only implemented in Unity), or use headless unity
