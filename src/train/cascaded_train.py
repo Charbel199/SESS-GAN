@@ -20,6 +20,7 @@ from helpers.draw_concat import draw_concat
 from helpers.noise import update_noise_amplitude
 from helpers.environment import load_environments, one_hot_environment_to_tokens
 from helpers.save import torch_save
+from helpers.utils import object_variables_to_json
 
 logger = LoggerService.get_instance()
 
@@ -27,6 +28,12 @@ logger = LoggerService.get_instance()
 class CascadedModelTrainer(ModelTrainer):
 
     def train_model(self, config: ModelConfig):
+        # Create output directory
+        if not os.path.exists(config.output_path):
+            os.makedirs(config.output_path)
+
+        # Save config
+        object_variables_to_json(config, os.path.join(config.output_path))
 
         generators = []
         noise_maps = []
@@ -116,7 +123,6 @@ class CascadedModelTrainer(ModelTrainer):
 
         noise_size_x = current_scale_real.shape[2]  # Noise size x
         noise_size_y = current_scale_real.shape[3]  # Noise size y
-
 
         pad_size = int(
             config.number_of_layers * ((config.kernel_size - 1) / 2))  # Padding to have same input and output sizes
@@ -255,7 +261,7 @@ class CascadedModelTrainer(ModelTrainer):
             # More Logging:
             if step % 200 == 0:
                 logger.info(f"noise_amplitude@sacle_{current_scale}: {config.noise_amp}"
-                           f"rec_loss@scale_{current_scale}: {rec_loss.item()}")
+                            f"rec_loss@scale_{current_scale}: {rec_loss.item()}")
 
             # Rendering and logging images of levels
             if current_epoch % 500 == 0 or current_epoch == (config.epoch - 1):
