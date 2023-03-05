@@ -4,13 +4,13 @@ from logger.log import LoggerService
 from typing import List
 from enums.padding_type import PaddingType
 from enums.environment import Environment
+
 logger = LoggerService.get_instance()
 
 
 class ModelConfig:
 
     def __init__(self, args):
-        self.batch_size: int = args.batch_size
         self.epoch: int = args.epoch
         self.device: str = args.device
         self.size: int = args.size
@@ -22,16 +22,13 @@ class ModelConfig:
         self.lambda_grad: float = args.lambda_grad
         self.discriminator_steps: int = args.discriminator_steps
         self.generator_steps: int = args.generator_steps
-        self.noise_dimension: int = args.noise_dimension
-        self.features_discriminator: int = args.features_discriminator
-        self.features_generator: int = args.features_generator
+
         self.train_path: str = args.train_path
-        self.val_path: str = args.val_path
         self.data_format: str = args.data_format
         self.kernel_size: int = args.kernel_size
         self.save: int = args.save
         self.load: int = args.load
-        self.models_path: str = args.models_path
+
         self.scales: List = args.scales
         self.output_path: str = args.output_path
         self.pad_type: str = args.pad_type
@@ -39,7 +36,7 @@ class ModelConfig:
         self.number_of_filters: str = args.nfc
         self.number_of_layers: int = args.layers
         self.starting_scale: int = args.starting_scale
-        self.noise_amp: float = 1.0 # Check functionality
+        self.noise_amp: float = 1.0  # Check functionality
         self.noise_update: float = 0.1
 
         self.scales = [[x, x] for x in self.scales]
@@ -50,6 +47,15 @@ class ModelConfig:
         self.token_list = []
         self.noise_amp = 1.0  # noise amp for lowest scale always starts at 1
         self.current_output_path = ''
+
+        # For simple train
+        self.val_path: str = args.val_path
+        self.models_path: str = args.models_path
+        self.features_discriminator: int = args.features_discriminator
+        self.features_generator: int = args.features_generator
+        self.noise_dimension: int = args.noise_dimension
+        self.batch_size: int = args.batch_size
+
 
 def process_args(args) -> ModelConfig:
     if torch.cuda.is_available() and args.device == 'cpu':
@@ -65,8 +71,10 @@ def parse_args() -> ModelConfig:
     parser.add_argument('-e', '--epoch', type=int, default=10, help='Number of epochs')
     parser.add_argument('-d', '--device', type=str, default='cpu', help='Device (cpu, cuda:0 ...)')
     parser.add_argument('-s', '--size', type=int, default=50, help='Image size')
-    parser.add_argument('-lr_g', '--learning-rate-generator', type=float, default=3e-4, help='Learning Rate for generator')
-    parser.add_argument('-lr_d', '--learning-rate-discriminator', type=float, default=3e-4, help='Learning Rate for discriminator')
+    parser.add_argument('-lr_g', '--learning-rate-generator', type=float, default=3e-4,
+                        help='Learning Rate for generator')
+    parser.add_argument('-lr_d', '--learning-rate-discriminator', type=float, default=3e-4,
+                        help='Learning Rate for discriminator')
     parser.add_argument('-beta1', type=float, default=0.5, help='Beta1 for learning rate')
     parser.add_argument('-gamma', type=float, default=0.1, help='Gamma for learning rate')
     parser.add_argument('-alpha', type=int, default=100, help='Reconstruction loss weight')
