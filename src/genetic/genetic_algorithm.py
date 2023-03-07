@@ -3,8 +3,53 @@ from typing import List
 import random
 import numpy as np
 import torch
+from evaluate.generate_samples import generate_map
+from conf import ModelConfig
+import requests
+import json
+import os
+from helpers.save import torch_save
+import re
 
 logger = LoggerService.get_instance()
+
+
+def get_most_recent_generation_dir(directory):
+    # Create a regular expression to match the numeric part of directory names
+    pattern = re.compile(r"\d+$")
+
+    # Initialize the maximum numeric value to zero and the corresponding directory name to None
+    max_value = 0
+    max_directory = None
+
+    # Loop through the directories in the directory
+    for subdir in os.listdir(directory):
+        # Check if the subdirectory is a directory
+        if os.path.isdir(os.path.join(directory, subdir)):
+            # Extract the numeric part of the directory name
+            match = pattern.search(subdir)
+            if match:
+                value = int(match.group(0))
+                # Update the maximum numeric value and directory name if this directory has a bigger value
+                if value > max_value:
+                    max_value = value
+                    max_directory = subdir
+
+    # Print the maximum directory name
+    return max_directory, max_value
+
+
+def average(lst):
+    return sum(lst) / len(lst)
+
+
+def matrix2d_to_string(matrix):
+    matrix_string = ""
+    for row in matrix:
+        for i in row:
+            matrix_string += f"{str(i)} "
+        matrix_string += "\n"
+    return matrix_string
 
 
 def flatten_model(model):
