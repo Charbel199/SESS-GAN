@@ -3,6 +3,7 @@ from typing import List
 import random
 import numpy as np
 import torch
+
 logger = LoggerService.get_instance()
 
 
@@ -13,11 +14,24 @@ class Agent:
         self.network = network
 
     def mutate(self):
+        # if random.uniform(0.0, 1.0) <= 0.1:
+        #     weights = self.neural_network.weights
+        #     shapes = [a.shape for a in weights]
+        #     flattened = np.concatenate([a.flatten() for a in weights])
+        #     randint = random.randint(0, len(flattened) - 1)
+        #     flattened[randint] = np.random.randn()
+        #     newarray = [a]
+        #     indeweights = 0
+        #     for shape in shapes:
+        #         size = np.product(shape)
+        #         newarray.append(flattened[indeweights: indeweights + size].reshape(shape))
+        #         indeweights += size
+        #     self.neural_network.weights = newarray
         pass
 
 
 class GeneticAlgorithm:
-    def __int__(self, network, remaining_population_percentage=0.1, population_size=50):
+    def __init__(self, network, remaining_population_percentage=0.1, population_size=50):
         self.population_size = population_size
         self.remaining_population_percentage = remaining_population_percentage
         self.network = network
@@ -37,13 +51,14 @@ class GeneticAlgorithm:
             agents = self.selection(agents)
             # If statisfactory
             # Keep selected agents
+            if any(agent.fitness < threshold for agent in agents):
+                logger.info(f'Threshold met at generation {str(i)} !')
 
             # If not satisfactory
             agents = self.cross_over(agents)
             agents = self.mutation(agents)
 
-            if any(agent.fitness < threshold for agent in agents):
-                logger.info(f'Threshold met at generation {str(i)} !')
+
 
             if i % 100:
                 pass
@@ -57,19 +72,7 @@ class GeneticAlgorithm:
 
     def mutation(self, agents: List[Agent]) -> List[Agent]:
         for agent in agents:
-            if random.uniform(0.0, 1.0) <= 0.1:
-                weights = agent.network.weights
-                shapes = [a.shape for a in weights]
-                flattened = np.concatenate([a.flatten() for a in weights])
-                randint = random.randint(0, len(flattened) - 1)
-                flattened[randint] = np.random.randn()
-                newarray = []
-                indeweights = 0
-                for shape in shapes:
-                    size = np.product(shape)
-                    newarray.append(flattened[indeweights: indeweights + size].reshape(shape))
-                    indeweights += size
-                agent.network.weights = newarray
+            agent.mutate()
         return agents
 
     def fitness(self, agents: List[Agent]) -> List[Agent]:
@@ -79,7 +82,7 @@ class GeneticAlgorithm:
             # Compute score
 
             # Update fitness score of agent
-            agent.fitness = 1
+            agent.fitness = random.uniform(0.5, 0.96)
         return agents
 
     def cross_over(self, agents: List[Agent]):

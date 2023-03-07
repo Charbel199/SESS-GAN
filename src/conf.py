@@ -86,8 +86,8 @@ def parse_args() -> ModelConfig:
                         help='Scaling discriminator features factor')
     parser.add_argument('-fg', '--features-generator', type=int, default=64,
                         help='Scaling generator features factor')
-    parser.add_argument('-tp', '--train-path', type=str, required=True, help='Training data path')
-    parser.add_argument('-vp', '--val-path', type=str, required=True, help='Validation data path')
+    parser.add_argument('-tp', '--train-path', type=str, help='Training data path')
+    parser.add_argument('-vp', '--val-path', type=str, help='Validation data path')
     parser.add_argument('-df', '--data-format', type=str, default='txt', help='Data type (txt, csv ...)')
     parser.add_argument('-ks', '--kernel-size', type=int, default='3', help='Convolution kernel size')
     parser.add_argument('--save', type=int, default='0', help='Save models')
