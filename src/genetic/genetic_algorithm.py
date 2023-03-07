@@ -37,29 +37,23 @@ class Agent:
         self.network = network
         self.fitness = 0
 
-    def mutate(self):
-        # if random.uniform(0.0, 1.0) <= 0.1:
-        #     weights = self.neural_network.weights
-        #     shapes = [a.shape for a in weights]
-        #     flattened = np.concatenate([a.flatten() for a in weights])
-        #     randint = random.randint(0, len(flattened) - 1)
-        #     flattened[randint] = np.random.randn()
-        #     newarray = [a]
-        #     indeweights = 0
-        #     for shape in shapes:
-        #         size = np.product(shape)
-        #         newarray.append(flattened[indeweights: indeweights + size].reshape(shape))
-        #         indeweights += size
-        #     self.neural_network.weights = newarray
-        pass
+    def mutate(self, mutation_rate=0.01):
+
+        model_dict = flatten_model(self.network)
+        for scale in model_dict.keys():
+            weight_strings = list(model_dict[scale].keys())
+            for weight_string in weight_strings:
+                weights = model_dict[scale][weight_string]
+                model_dict[scale][weight_string] = weights * (1 + mutation_rate * torch.randn_like(weights))
+        self.network = unflatten_model(self.network, model_dict)
 
 
 class GeneticAlgorithm:
-    def __init__(self, network, remaining_population_percentage=0.1, population_size=50):
+    def __init__(self, network, remaining_population_percentage=0.1, population_size=50, mutation_rate=0.1):
         self.population_size = population_size
         self.remaining_population_percentage = remaining_population_percentage
         self.network = network
-        pass
+        self.mutation_rate = mutation_rate
 
     def generate_agents(self) -> List[Agent]:
         return [Agent(self.network) for _ in range(self.population_size)]
@@ -94,7 +88,7 @@ class GeneticAlgorithm:
 
     def mutation(self, agents: List[Agent]) -> List[Agent]:
         for agent in agents:
-            agent.mutate()
+            agent.mutate(mutation_rate=self.mutation_rate)
         return agents
 
     def fitness(self, agents: List[Agent]) -> List[Agent]:
