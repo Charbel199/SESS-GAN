@@ -33,7 +33,7 @@ class CascadedModelTrainer(ModelTrainer):
             os.makedirs(config.output_path)
 
         # Save config
-        object_variables_to_json(config, os.path.join(config.output_path))
+        object_variables_to_json(config, os.path.join(config.output_path, "vars.json"))
 
         generators = []
         noise_maps = []
