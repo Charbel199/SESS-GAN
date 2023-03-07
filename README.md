@@ -33,6 +33,21 @@ Here are some examples of some preliminary testing:
 <img src="docs/Race5.png" width="45%">
 
 
+## Simulation Metrics
+
+- Simulation time
+- Risk score:
+  - Number of collisions
+  - Proximity time
+- Pattern KL-Divergence (Need to be small)
+- Map uniqueness (Need to be high)
+- Map complexity
+  - Empty map percentage
+  - Energy distribution
+- Simulation completed?
+
+
+
 ## Next Steps
 
 - Implement a genetic evolution algiorithm to improve the fault-revealing power of the environment generator
