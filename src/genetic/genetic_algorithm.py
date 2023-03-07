@@ -157,13 +157,28 @@ class GeneticAlgorithm:
         return agents
 
     def fitness(self, agents: List[Agent]) -> List[Agent]:
-        for agent in agents:
-            # Run simulation
 
-            # Compute score
+        for agent in agents:
+            # Generate levels
+            generated_levels = generate_map(self.config, num_samples=20, generators=agent.network)[0]
+            # Fetch simulation metrics
+            risk_scores = []
+            for generated_level in generated_levels:
+                generated_level_string = matrix2d_to_string(generated_level.cpu().numpy())
+                response = requests.post("http://localhost:8080/simulate",
+                                         json={"matrixString": generated_level_string})
+                simulation_metrics = json.loads(response.content)
+                if simulation_metrics["simulationTime"] > 0:
+                    risk_scores.append(
+                        simulation_metrics["collisionCount"] * simulation_metrics["proximityTime"] / simulation_metrics[
+                            "simulationTime"])
+                # logger.info(f"Simulation metrics {simulation_metrics}")
+                # logger.info(f"Risk score {risk_scores[-1] if len(risk_scores) > 0 else 0}")
+
+            risk_score = average(risk_scores) if len(risk_scores) > 0 else 0
 
             # Update fitness score of agent
-            agent.fitness = random.uniform(0.5, 0.96)
+            agent.fitness = risk_score
         return agents
 
     def cross_over(self, agents: List[Agent]):
