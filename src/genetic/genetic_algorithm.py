@@ -7,11 +7,35 @@ import torch
 logger = LoggerService.get_instance()
 
 
-class Agent:
-    fitness = 0
+def flatten_model(model):
+    model_dict = {}
+    for scale, generator in enumerate(model):
+        model_dict[scale] = {}
+        keys = list(generator.state_dict().keys())
+        weight_strings = [s for s in keys if '.weight' in s or '.bias' in s]
+        for weight_string in weight_strings:
+            weights = generator.state_dict()[weight_string]
+            flattened = weights.flatten()
+            model_dict[scale][weight_string] = flattened
+    return model_dict
 
+
+def unflatten_model(model, model_dict):
+    for scale, generator in enumerate(model):
+        keys = list(generator.state_dict().keys())
+        weight_strings = [s for s in keys if '.weight' in s or '.bias' in s]
+        for weight_string in weight_strings:
+            weights = generator.state_dict()[weight_string]
+            shape = weights.shape
+            generator.state_dict()[weight_string] = model_dict[scale][weight_string].reshape(shape)
+
+    return model
+
+
+class Agent:
     def __init__(self, network):
         self.network = network
+        self.fitness = 0
 
     def mutate(self):
         # if random.uniform(0.0, 1.0) <= 0.1:
@@ -57,8 +81,6 @@ class GeneticAlgorithm:
             # If not satisfactory
             agents = self.cross_over(agents)
             agents = self.mutation(agents)
-
-
 
             if i % 100:
                 pass
