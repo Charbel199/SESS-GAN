@@ -11,6 +11,10 @@ from environments.robot_navigation.tokens import TOKEN_LIST as robot_navigation_
 from helpers.environment import one_hot_environment_to_tokens
 import torch
 from helpers.save import torch_save
+import os
+from conf import ModelConfig
+from model.singan.models_helper import load_trained_components
+from logger.log import LoggerService
 
 logger = LoggerService.get_instance()
 
@@ -18,7 +22,7 @@ logger = LoggerService.get_instance()
 def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: ModelConfig, input_image=None,
                      scale_v=1.0, scale_h=1.0,
                      current_scale=0, gen_start_scale=0, num_samples=50, render_images=True, save_tensors=False,
-                     save_dir="random_samples"):
+                     save_dir="random_samples", save=True):
     # Holds images generated in current scale
     current_images = []
 
@@ -63,6 +67,7 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
             input_image = torch.zeros(1, len(config.token_list), *input_image.shape[-2:]).to(config.device)
 
         # Generate num_samples samples in current scale
+        generated_levels = []
         for n in tqdm(range(0, num_samples, 1)):
 
             # Get noise image
@@ -96,27 +101,26 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
 
             # Save only last scale
             if current_scale == len(reals) - 1:
-                dir2save = os.path.join(config.output_path, save_dir)
-
-                # Make directories
-                try:
-                    os.makedirs(dir2save, exist_ok=True)
-                    if render_images:
-                        os.makedirs(os.path.join(dir2save, 'img'), exist_ok=True)
-                    if save_tensors:
-                        os.makedirs(os.path.join(dir2save, 'torch'), exist_ok=True)
-                    os.makedirs(os.path.join(dir2save, 'txt'), exist_ok=True)
-                except OSError:
-                    pass
-
                 # Convert to ascii level
                 level = one_hot_environment_to_tokens(current_image[0].detach().cpu())
-
-                # Save level txt
-                torch_save(level, os.path.join(dir2save, 'txt'), f"{n}_scale{current_scale}.txt", file_type='txt')
-                # Save level image
-                torch_save(level, os.path.join(dir2save, 'img'), f"{n}_scale{current_scale}.png",
-                           file_type='image')
+                generated_levels.append(level)
+                if save:
+                    dir2save = os.path.join(config.output_path, save_dir)
+                    # Make directories
+                    try:
+                        os.makedirs(dir2save, exist_ok=True)
+                        if render_images:
+                            os.makedirs(os.path.join(dir2save, 'img'), exist_ok=True)
+                        if save_tensors:
+                            os.makedirs(os.path.join(dir2save, 'torch'), exist_ok=True)
+                        os.makedirs(os.path.join(dir2save, 'txt'), exist_ok=True)
+                    except OSError:
+                        pass
+                    # Save level txt
+                    torch_save(level, os.path.join(dir2save, 'txt'), f"{n}_scale{current_scale}.txt", file_type='txt')
+                    # Save level image
+                    torch_save(level, os.path.join(dir2save, 'img'), f"{n}_scale{current_scale}.png",
+                               file_type='image')
 
             # Append current image
             current_images.append(current_image)
@@ -124,4 +128,30 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
         # Go to next scale
         current_scale += 1
 
-    return current_image.detach()  # return last generated image
+    return generated_levels, current_image.detach()  # return last generated image
+
+
+def generate_map(config: ModelConfig, num_samples=1, generators = None, save_dir="random_samples",save=False):
+    generators_m, noise_maps_m, reals_m, noise_amplitudes_m = load_trained_components(config)
+    if generators:
+        generators_m = generators
+    # Set in_s and scales
+    if config.starting_scale == 0:  # starting in lowest scale
+        input_image = None
+        scale_v = 1.0
+        # scale_h = 200 / real_m.shape[-1]  # normalize all levels to length 16x200
+        scale_h = 1.0
+    else:  # if opt.starting_scale > 0
+        # Only works with default level size if no in_s is provided (should not be reached)
+        input_image = reals_m[config.starting_scale]
+        scale_v = 1.0
+        scale_h = 1.0
+
+    # Define directory
+
+
+    # Generate samples
+    return generate_samples(generators_m, noise_maps_m, reals_m, noise_amplitudes_m, config, input_image=input_image,
+                            scale_v=scale_v, scale_h=scale_h, current_scale=config.starting_scale,
+                            gen_start_scale=config.starting_scale, num_samples=num_samples, render_images=False,
+                            save_tensors=False, save_dir=save_dir, save=save)
