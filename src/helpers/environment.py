@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from utils import load_np
+from helpers.utils import load_np
 import glob
 import os
 
