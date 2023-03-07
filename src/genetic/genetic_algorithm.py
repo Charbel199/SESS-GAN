@@ -8,6 +8,22 @@ logger = LoggerService.get_instance()
 
 
 def flatten_model(model):
+    """
+    Example output:
+    {
+    0:
+        {
+            "head.conv.weight":[.....],
+            "head.conv.bias":[......],
+            ...
+        }
+    1:
+        {
+        ...
+        }
+
+    }
+    """
     model_dict = {}
     for scale, generator in enumerate(model):
         model_dict[scale] = {}
@@ -21,6 +37,9 @@ def flatten_model(model):
 
 
 def unflatten_model(model, model_dict):
+    """
+    Updates the model with the model_dict values
+    """
     for scale, generator in enumerate(model):
         keys = list(generator.state_dict().keys())
         weight_strings = [s for s in keys if '.weight' in s or '.bias' in s]
@@ -59,25 +78,26 @@ class GeneticAlgorithm:
         return [Agent(self.network) for _ in range(self.population_size)]
 
     def execute(self, generations, threshold):
-
+        logger.info(f"Generating agents")
         agents = self.generate_agents()
+        logger.info(f"Applying initial mutations")
         agents = self.mutation(agents)
 
         for i in range(generations):
-            logger.info(f'Generation {str(i)}:')
+            logger.info(f'Generation #{str(i)}:')
             agents = self.fitness(agents)
             agents = self.selection(agents)
+            logger.info(f'Best fitness {agents[-1].fitness}')
             # If statisfactory
             # Keep selected agents
-            if any(agent.fitness < threshold for agent in agents):
+            if any(agent.fitness > threshold for agent in agents):
                 logger.info(f'Threshold met at generation {str(i)} !')
 
             # If not satisfactory
+            logger.info(f"Applying crossover")
             agents = self.cross_over(agents)
+            logger.info(f"Applying mutation")
             agents = self.mutation(agents)
-
-            if i % 100:
-                pass
 
         return agents[0]
 
@@ -105,26 +125,46 @@ class GeneticAlgorithm:
         offspring = []
         with torch.no_grad():
             for _ in range((self.population_size - len(agents)) // 2):
+                # Randomly choose 2 parents
                 parent1 = random.choice(agents)
                 parent2 = random.choice(agents)
-                child1 = Agent(self.network)
-                child2 = Agent(self.network)
 
-                shapes = [a.shape for a in parent1.network.weights]
 
-                genes1 = np.concatenate([a.flatten() for a in parent1.network.weights])
-                genes2 = np.concatenate([a.flatten() for a in parent2.network.weights])
+                model_dict1 = flatten_model(parent1.network)
+                model_dict2 = flatten_model(parent2.network)
+                child_model_dict1={}
+                child_model_dict2={}
+                for scale in model_dict1.keys():
+                    weight_strings = list(model_dict1[scale].keys())
 
-                split = random.randint(0, len(genes1) - 1)
-                child1_genes = np.array(genes1[0:split].tolist() + genes2[split:].tolist())
-                child2_genes = np.array(genes1[0:split].tolist() + genes2[split:].tolist())
+                    child_model_dict1[scale]={}
+                    child_model_dict2[scale]={}
 
-                child1.network.weights = self.unflatten(child1_genes, shapes)
-                child2.network.weights = self.unflatten(child2_genes, shapes)
+                    for weight_string in weight_strings:
+                        weights1 = model_dict1[scale][weight_string]
+                        weights2 = model_dict2[scale][weight_string]
+                        # Apply crossover
+                        split = random.randint(0, len(weights1) - 1)
+                        child1_genes = torch.cat((weights1[:split], weights2[split:]), dim=0)
+                        child2_genes = torch.cat((weights1[split:], weights2[:split]), dim=0)
+                        # Populating model_dicts for children
+                        child_model_dict1[scale][weight_string] = child1_genes
+                        child_model_dict2[scale][weight_string] = child2_genes
 
+                # Initialize children with random weights (parent weights in this case)
+                child1 = Agent(parent1.network)
+                child2 = Agent(parent2.network)
+                # Update children weights
+                child1.network = unflatten_model(child1.network, child_model_dict1)
+                child2.network = unflatten_model(child2.network, child_model_dict2)
+
+                # Append children
                 offspring.append(child1)
                 offspring.append(child2)
+
+        logger.info(f"Agents len is {len(agents)} and offspring len {len(offspring)}")
         agents.extend(offspring)
+        logger.info(f"New Agents len is {len(agents)}")
         return agents
 
     def unflatten(self, flattened, shapes):
