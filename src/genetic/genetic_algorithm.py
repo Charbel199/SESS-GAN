@@ -126,11 +126,22 @@ class GeneticAlgorithm:
 
     def execute(self, generations, threshold):
         logger.info(f"Generating agents")
-        agents = self.generate_agents()
+        load_agents = False
+        if not load_agents:
+            agents = self.generate_agents()
+            starting_generation = 0
+        else:
+            max_dir, max_value = get_most_recent_generation_dir(os.path.join(self.config.output_path, "ga"))
+            starting_generation = max_value
+            generators = torch.load(os.path.join(self.config.output_path, "ga", f"{max_dir}", "generators.pth"))
+            agents = [Agent(network=g) for g in generators]
+            logger.info(
+                f'Loaded generators from {os.path.join(self.config.output_path, "ga", f"{max_dir}", "generators.pth")}')
+            logger.info(f'Restarting from generation #{starting_generation}')
         logger.info(f"Applying initial mutations")
         agents = self.mutation(agents)
 
-        for i in range(generations):
+        for i in range(starting_generation, generations):
             logger.info(f'Generation #{str(i)}:')
             agents = self.fitness(agents)
             agents = self.selection(agents)
