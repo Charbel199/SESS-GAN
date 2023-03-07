@@ -113,7 +113,9 @@ class Agent:
 
 
 class GeneticAlgorithm:
-    def __init__(self, network, remaining_population_percentage=0.1, population_size=50, mutation_rate=0.1):
+    def __init__(self, config: ModelConfig, network, remaining_population_percentage=0.1, population_size=50,
+                 mutation_rate=0.1):
+        self.config = config
         self.population_size = population_size
         self.remaining_population_percentage = remaining_population_percentage
         self.network = network
@@ -137,6 +139,20 @@ class GeneticAlgorithm:
             # Keep selected agents
             if any(agent.fitness > threshold for agent in agents):
                 logger.info(f'Threshold met at generation {str(i)} !')
+
+            # Save generation logs
+            if i % 1 == 0:
+                generators = [agent.network for agent in agents]
+                agents_fitness = [agent.fitness for agent in agents]
+                genetic_algorithm_path = os.path.join(self.config.output_path, "ga")
+                torch_save(generators, os.path.join(genetic_algorithm_path, f"generation{i}"), 'generators.pth')
+                data = {"fitness": agents_fitness}
+                with open(os.path.join(genetic_algorithm_path, f"generation{i}", "metrics.json"), "w") as file:
+                    # Write the JSON data to the file
+                    json.dump(data, file)
+                for j, agent in enumerate(agents):
+                    generate_map(self.config, num_samples=3, generators=agent.network, save=True,
+                                 save_dir=os.path.join('ga', f"generation{i}", f"agent{j}"))
 
             # If not satisfactory
             logger.info(f"Applying crossover")
@@ -189,16 +205,15 @@ class GeneticAlgorithm:
                 parent1 = random.choice(agents)
                 parent2 = random.choice(agents)
 
-
                 model_dict1 = flatten_model(parent1.network)
                 model_dict2 = flatten_model(parent2.network)
-                child_model_dict1={}
-                child_model_dict2={}
+                child_model_dict1 = {}
+                child_model_dict2 = {}
                 for scale in model_dict1.keys():
                     weight_strings = list(model_dict1[scale].keys())
 
-                    child_model_dict1[scale]={}
-                    child_model_dict2[scale]={}
+                    child_model_dict1[scale] = {}
+                    child_model_dict2[scale] = {}
 
                     for weight_string in weight_strings:
                         weights1 = model_dict1[scale][weight_string]
