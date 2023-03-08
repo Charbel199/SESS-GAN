@@ -19,6 +19,29 @@ from logger.log import LoggerService
 logger = LoggerService.get_instance()
 
 
+def convert_isolated_ones(matrix):
+    # Copy the input matrix to avoid modifying it directly
+    new_matrix = matrix.clone()
+    # Loop through each cell in the matrix
+    for i in range(matrix.size(0)):
+        for j in range(matrix.size(1)):
+            # Check if the current cell is a 1 and is isolated
+            if matrix[i][j] == 1 and is_isolated(new_matrix, i, j):
+                # Convert the isolated 1 to a 0
+                new_matrix[i][j] = 0
+    return new_matrix
+
+
+def is_isolated(matrix, i, j):
+    # Check if the cell is on the edge of the matrix
+    if i == 0 or i == matrix.size(0) - 1 or j == 0 or j == matrix.size(1) - 1:
+        return False
+    # Check if the cell is surrounded by 0s
+    if matrix[i - 1][j] == 0 and matrix[i + 1][j] == 0 and matrix[i][j - 1] == 0 and matrix[i][j + 1] == 0:
+        return True
+    return False
+
+
 def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: ModelConfig, input_image=None,
                      scale_v=1.0, scale_h=1.0,
                      current_scale=0, gen_start_scale=0, num_samples=50, render_images=True, save_tensors=False,
@@ -103,6 +126,8 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
             if current_scale == len(reals) - 1:
                 # Convert to ascii level
                 level = one_hot_environment_to_tokens(current_image[0].detach().cpu())
+                level2 = convert_isolated_ones(level)
+
                 generated_levels.append(level)
                 if save:
                     dir2save = os.path.join(config.output_path, save_dir)
@@ -118,10 +143,12 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
                         pass
                     # Save level txt
                     torch_save(level, os.path.join(dir2save, 'txt'), f"{n}_scale{current_scale}.txt", file_type='txt')
+
                     # Save level image
                     torch_save(level, os.path.join(dir2save, 'img'), f"{n}_scale{current_scale}.png",
                                file_type='image')
-
+                    torch_save(level2, os.path.join(dir2save, 'img'), f"2_{n}_scale{current_scale}.png",
+                               file_type='image')
             # Append current image
             current_images.append(current_image)
 
@@ -131,7 +158,7 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
     return generated_levels, current_image.detach()  # return last generated image
 
 
-def generate_map(config: ModelConfig, num_samples=1, generators = None, save_dir="random_samples",save=False):
+def generate_map(config: ModelConfig, num_samples=1, generators=None, save_dir="random_samples", save=False):
     generators_m, noise_maps_m, reals_m, noise_amplitudes_m = load_trained_components(config)
     if generators:
         generators_m = generators
@@ -148,7 +175,6 @@ def generate_map(config: ModelConfig, num_samples=1, generators = None, save_dir
         scale_h = 1.0
 
     # Define directory
-
 
     # Generate samples
     return generate_samples(generators_m, noise_maps_m, reals_m, noise_amplitudes_m, config, input_image=input_image,
