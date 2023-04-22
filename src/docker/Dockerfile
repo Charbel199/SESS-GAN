@@ -18,4 +18,5 @@ RUN apt-get update && apt-get install -y wget gnupg curl && apt-get install --no
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install -r requirements.txt
-CMD ["tail", "-f", "/dev/null"]
+
+RUN export PYTHONPATH=$PYTHONPATH:/app/src
