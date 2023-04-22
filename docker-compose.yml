@@ -6,6 +6,18 @@ services:
     build:
       context: ./src
       dockerfile: ./docker/Dockerfile
-    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            # that's the closest analogue to --gpus; provide
+            # an integer amount of devices or 'all'
+            count: 1
+            # Devices are reserved using a list of capabilities, making
+            # capabilities the only required field. A device MUST
+            # satisfy all the requested capabilities for a successful
+            # reservation.
+            capabilities: [gpu]
     volumes:
       - ./src:/app/src
