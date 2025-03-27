@@ -5,6 +5,10 @@ import os
 from train.abstract_train import ModelTrainer
 from environments.robot_navigation.downsampling import robot_navigation_downsampling
 from environments.robot_navigation.tokens import TOKEN_LIST as robot_navigation_token_list
+
+from environments.drone_navigation.downsampling import drone_navigation_downsampling
+from environments.drone_navigation.tokens import TOKEN_LIST as drone_navigation_token_list
+
 from model.singan.models_helper import initialize_new_models, reset_gradients
 from typing import List
 import torch.nn as nn
@@ -42,12 +46,17 @@ class CascadedModelTrainer(ModelTrainer):
         # Set token group
         if config.environment == Environment.ROBOT_NAVIGATION:
             config.token_list = robot_navigation_token_list
-
+        elif config.environment == Environment.DRONE_NAVIGATION:
+            config.token_list = drone_navigation_token_list
         # Get real environments
         real = load_environments(config.train_path, config.token_list, 'txt')
 
         # Downsample original environments
-        scaled_list = robot_navigation_downsampling(config.scales, real, config.token_list)
+        if config.environment == Environment.ROBOT_NAVIGATION:
+            scaled_list = robot_navigation_downsampling(config.scales, real, config.token_list)
+        elif config.environment == Environment.DRONE_NAVIGATION:
+            scaled_list = drone_navigation_downsampling(config.scales, real, config.token_list)
+
 
         # Generate a list of all real input environments (Scaled & Original)
         reals = [*scaled_list, real]
@@ -120,6 +129,8 @@ class CascadedModelTrainer(ModelTrainer):
         # Set token list
         if config.environment == Environment.ROBOT_NAVIGATION:
             config.token_list = robot_navigation_token_list
+        elif config.environment == Environment.DRONE_NAVIGATION:
+            config.token_list = drone_navigation_token_list
 
         noise_size_x = current_scale_real.shape[2]  # Noise size x
         noise_size_y = current_scale_real.shape[3]  # Noise size y
