@@ -100,6 +100,7 @@ class Agent:
     def __init__(self, network):
         self.network = network
         self.fitness = 0
+        self.additional_metrics = {}
 
     def mutate(self, mutation_rate=0.01):
 
@@ -155,9 +156,11 @@ class GeneticAlgorithm:
             if i % 1 == 0:
                 generators = [agent.network for agent in agents]
                 agents_fitness = [agent.fitness for agent in agents]
+                additional_metrics = [agent.additional_metrics for agent in agents]
                 genetic_algorithm_path = os.path.join(self.config.output_path, "ga")
                 torch_save(generators, os.path.join(genetic_algorithm_path, f"generation{i}"), 'generators.pth')
-                data = {"fitness": agents_fitness}
+                data = {"fitness": agents_fitness, "additional_metrics": additional_metrics}
+               
                 with open(os.path.join(genetic_algorithm_path, f"generation{i}", "metrics.json"), "w") as file:
                     # Write the JSON data to the file
                     json.dump(data, file)
@@ -174,7 +177,8 @@ class GeneticAlgorithm:
         return agents[0]
 
     def selection(self, agents: List[Agent]) -> List[Agent]:
-        agents = sorted(agents, key=lambda agent: agent.fitness, reverse=False)
+        agents = sorted(agents, key=lambda agent: agent.fitness, reverse=True)
+        logger.info(f"Agents to be selected: {[agent.fitness for agent in agents]}")
         agents = agents[:int(self.remaining_population_percentage * len(agents))]
         return agents
 
@@ -184,12 +188,15 @@ class GeneticAlgorithm:
         return agents
 
     def fitness(self, agents: List[Agent]) -> List[Agent]:
-
+        logger.info(f"Agents size: {len(agents)}")
         for agent in agents:
             # Generate levels
             generated_levels = generate_map(self.config, num_samples=20, generators=agent.network)[0]
             # Fetch simulation metrics
             risk_scores = []
+            collision_counts = []
+            proximity_times = []
+            simulation_times = []
             for generated_level in generated_levels:
                 generated_level_string = matrix2d_to_string(generated_level.cpu().numpy())
                 response = requests.post("http://localhost:8080/simulate",
@@ -199,13 +206,21 @@ class GeneticAlgorithm:
                     risk_scores.append(
                         simulation_metrics["collisionCount"] * simulation_metrics["proximityTime"] / simulation_metrics[
                             "simulationTime"])
+                    collision_counts.append(simulation_metrics["collisionCount"])
+                    proximity_times.append(simulation_metrics["proximityTime"])
+                    simulation_times.append(simulation_metrics["simulationTime"])
                 # logger.info(f"Simulation metrics {simulation_metrics}")
                 # logger.info(f"Risk score {risk_scores[-1] if len(risk_scores) > 0 else 0}")
-
+            
             risk_score = average(risk_scores) if len(risk_scores) > 0 else 0
-
             # Update fitness score of agent
             agent.fitness = risk_score
+            agent.additional_metrics = {
+                "collisionCount": average(collision_counts) if len(collision_counts) > 0 else 0,
+                "proximityTime": average(proximity_times) if len(proximity_times) > 0 else 0,
+                "simulationTime": average(simulation_times) if len(simulation_times) > 0 else 0
+            }
+            logger.info(f"risk score: {risk_score} and additional metrics: {agent.additional_metrics}")
         return agents
 
     def cross_over(self, agents: List[Agent]):
