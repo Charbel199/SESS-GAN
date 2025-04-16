@@ -64,4 +64,4 @@ def parse_and_plot_metrics(top_level_folder):
 
     plt.tight_layout()
     plt.show()
-parse_and_plot_metrics("/home/charbel199/projs/simulator-GAN/src/assets/results15/ga")
+parse_and_plot_metrics("./src/assets/results15/ga")

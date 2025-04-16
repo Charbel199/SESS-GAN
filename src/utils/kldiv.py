@@ -14,7 +14,7 @@ def load_grid_from_txt(path, grid_size=32):
             if len(tokens) == 1 and len(tokens[0]) == grid_size:
                 tokens = list(tokens[0])
             elif len(tokens) != grid_size:
-                print(f"⚠️ Line {line_num + 1} has {len(tokens)} tokens, expected {grid_size}. Skipping.")
+                print(f"Line {line_num + 1} has {len(tokens)} tokens, expected {grid_size}. Skipping.")
                 continue
 
             try:
@@ -22,7 +22,7 @@ def load_grid_from_txt(path, grid_size=32):
                 if len(row) == grid_size:
                     grid.append(row)
             except ValueError as e:
-                print(f"⚠️ Error parsing line {line_num + 1}: {e}")
+                print(f"Error parsing line {line_num + 1}: {e}")
                 continue
 
     grid = np.array(grid)
@@ -43,9 +43,9 @@ def load_all_grids_from_dir(directory, grid_size=32):
                     if grid.shape == (grid_size, grid_size):
                         grids.append(grid)
                     else:
-                        print(f"⚠️ Skipping {path}: Unexpected shape {grid.shape}")
+                        print(f"Skipping {path}: Unexpected shape {grid.shape}")
                 except Exception as e:
-                    print(f"⚠️ Skipping {path}: {e}")
+                    print(f"Skipping {path}: {e}")
     return grids
 
 def compute_cooccurrence(grid, directions=[(0, 1), (1, 0), (1, 1), (1, -1)]):
@@ -95,8 +95,8 @@ def compute_tpkldiv(ref_grid, gen_grids):
     return sum(kls) / len(kls)
 
 # Usage
-original_path = '/home/charbel199/projs/simulator-GAN/src/assets/data/train4/factory.txt'
-generated_dir = '/home/charbel199/projs/simulator-GAN/src/assets/results16/ga/generation37/agent0/txt'  # directory containing .txt files
+original_path = '../assets/data/train4/factory.txt'
+generated_dir = '../assets/results16/ga/generation37/agent0/txt'  # directory containing .txt files
 
 ref_grid = load_grid_from_txt(original_path)
 gen_grids = load_all_grids_from_dir(generated_dir)

@@ -8,6 +8,7 @@ from torch.nn.functional import interpolate
 from enums.padding_type import PaddingType
 from enums.environment import Environment
 from environments.robot_navigation.tokens import TOKEN_LIST as robot_navigation_token_list
+from environments.drone_navigation.tokens import TOKEN_LIST as drone_navigation_token_list
 from helpers.environment import one_hot_environment_to_tokens
 import torch
 from helpers.save import torch_save
@@ -52,7 +53,8 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
     # Set token list
     if config.environment == Environment.ROBOT_NAVIGATION:
         config.token_list = robot_navigation_token_list
-
+    if config.environment == Environment.DRONE_NAVIGATION:
+        config.token_list = drone_navigation_token_list
     # Main sampling loop
     for G, Z_opt, noise_amp in zip(generators, noise_maps, noise_amplitudes):
 
@@ -158,10 +160,12 @@ def generate_samples(generators, noise_maps, reals, noise_amplitudes, config: Mo
     return generated_levels, current_image.detach()  # return last generated image
 
 
-def generate_map(config: ModelConfig, num_samples=1, generators=None, save_dir="random_samples", save=False):
+def generate_map(config: ModelConfig, num_samples=1, generators=None, save_dir="random_samples", save=False, generator_index = None):
     generators_m, noise_maps_m, reals_m, noise_amplitudes_m = load_trained_components(config)
     if generators:
         generators_m = generators
+    if generator_index is not None:
+        generators_m = generators_m[generator_index]
     # Set in_s and scales
     if config.starting_scale == 0:  # starting in lowest scale
         input_image = None
